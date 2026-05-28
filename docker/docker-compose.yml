@@ -1,0 +1,36 @@
+version: '3.9'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: healthcare-backend
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/healthcare
+      - JWT_SECRET=supersecretjwt
+      - OPENAI_API_KEY=your_openai_api_key
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: healthcare-frontend
+    ports:
+      - "4173:4173"
+    environment:
+      - VITE_API_URL=http://localhost:5000/api
+    depends_on:
+      - backend
+  mongo:
+    image: mongo:7
+    container_name: healthcare-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+volumes:
+  mongo-data:

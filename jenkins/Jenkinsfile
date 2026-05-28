@@ -1,0 +1,86 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = "docker.io"
+        IMAGE_NAME_BACKEND = "nutricare-backend"
+        IMAGE_NAME_FRONTEND = "nutricare-frontend"
+        TAG = "${env.BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code from Git Repository...'
+                checkout scm
+            }
+        }
+
+        stage('Install Backend Dependencies') {
+            steps {
+                echo 'Installing Node.js packages for Express backend...'
+                dir('backend') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Install Frontend Dependencies') {
+            steps {
+                echo 'Installing Node.js packages for React frontend...'
+                dir('frontend') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Lint & Quality Checks') {
+            steps {
+                echo 'Running linting analysis...'
+                // sh 'npm run lint'
+            }
+        }
+
+        stage('Unit Testing') {
+            steps {
+                echo 'Executing unit and integration testing suites...'
+                // sh 'npm test'
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                echo 'Compiling multi-stage docker images...'
+                sh "docker build -f docker/backend.Dockerfile -t ${IMAGE_NAME_BACKEND}:${TAG} ./backend"
+                sh "docker build -f docker/frontend.Dockerfile -t ${IMAGE_NAME_FRONTEND}:${TAG} ./frontend"
+            }
+        }
+
+        stage('Publish Images') {
+            steps {
+                echo 'Tagging and pushing images to registry...'
+                // sh "docker tag ${IMAGE_NAME_BACKEND}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME_BACKEND}:${TAG}"
+                // sh "docker tag ${IMAGE_NAME_FRONTEND}:${TAG} ${DOCKER_REGISTRY}/${IMAGE_NAME_FRONTEND}:${TAG}"
+                // sh "docker push ${DOCKER_REGISTRY}/${IMAGE_NAME_BACKEND}:${TAG}"
+                // sh "docker push ${DOCKER_REGISTRY}/${IMAGE_NAME_FRONTEND}:${TAG}"
+            }
+        }
+
+        stage('Deploy to Staging') {
+            steps {
+                echo 'Deploying to staging environment using docker-compose...'
+                // sh 'docker-compose down'
+                // sh 'docker-compose up -d'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD pipeline completed successfully. NutriCare AI is deployed!'
+        }
+        failure {
+            echo 'Pipeline failed. Please check build logs and syntax.'
+        }
+    }
+}

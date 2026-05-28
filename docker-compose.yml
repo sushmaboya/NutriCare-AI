@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: nutricare-db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - nutricare-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend.Dockerfile
+    container_name: nutricare-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/healthcare
+      - JWT_SECRET=AntigravitySuperSecretJWTKey2026!
+      - OPENAI_API_KEY=your_openai_api_key_here
+    depends_on:
+      - mongodb
+    networks:
+      - nutricare-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend.Dockerfile
+      args:
+        - VITE_API_URL=http://localhost:5000/api
+    container_name: nutricare-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - nutricare-network
+
+networks:
+  nutricare-network:
+    driver: bridge
+
+volumes:
+  mongo_data:
+    driver: local
